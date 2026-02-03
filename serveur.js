@@ -1,64 +1,88 @@
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
-const path = require("path");
-
+const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;  // Important pour Render
 
-app.use(express.json());
+const DB_PATH = "./tasks.json";
+
+// Middlewares
 app.use(cors());
+app.use(express.json());
 
-// ========== DB Utils ==========
+// 🔹 Lecture du fichier JSON
 function readDB() {
   try {
-    return JSON.parse(fs.readFileSync("db.json", "utf-8"));
-  } catch {
+    if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, "[]");
+    const data = fs.readFileSync(DB_PATH, "utf-8");
+    return data ? JSON.parse(data) : [];
+  } catch (err) {
+    console.error("Erreur lecture DB:", err);
     return [];
   }
 }
 
-function writeDB(data) {
-  fs.writeFileSync("db.json", JSON.stringify(data, null, 2));
+// 🔹 Écriture dans le fichier JSON
+function writeDB(tasks) {
+  try {
+    fs.writeFileSync(DB_PATH, JSON.stringify(tasks, null, 2));
+  } catch (err) {
+    console.error("Erreur écriture DB:", err);
+  }
 }
 
-// ========== API Routes ==========
-app.get("/api/tasks", (req, res) => res.json(readDB()));
-
-app.post("/api/tasks", (req, res) => {
+// ---------- ROUTES API ----------
+// ➕ Créer une tâche
+app.post("/tasks", (req, res) => {
   const tasks = readDB();
-  const newTask = { id: Date.now(), ...req.body };
+  const newTask = {
+    id: tasks.length ? tasks[tasks.length - 1].id + 1 : 1,
+    title: req.body.title || "Tâche sans titre",
+    done: false,
+  };
   tasks.push(newTask);
   writeDB(tasks);
   res.status(201).json(newTask);
 });
 
-app.put("/api/tasks/:id", (req, res) => {
+// 📄 Lire toutes les tâches
+app.get("/tasks", (req, res) => {
   const tasks = readDB();
-  const idx = tasks.findIndex(t => t.id == req.params.id);
-  if (idx === -1) return res.status(404).json({ error: "Task not found" });
-  tasks[idx] = { ...tasks[idx], ...req.body };
-  writeDB(tasks);
-  res.json(tasks[idx]);
+  res.json(tasks);
 });
 
-app.delete("/api/tasks/:id", (req, res) => {
+// ✏️ Modifier une tâche
+app.put("/tasks/:id", (req, res) => {
+  const tasks = readDB();
+  const task = tasks.find(t => t.id === Number(req.params.id));
+  if (!task) return res.status(404).json({ message: "Tâche introuvable" });
+
+  task.title = req.body.title ?? task.title;
+  if (req.body.done !== undefined) task.done = req.body.done;
+
+  writeDB(tasks);
+  res.json(task);
+});
+
+// ❌ Supprimer une tâche
+app.delete("/tasks/:id", (req, res) => {
   let tasks = readDB();
-  tasks = tasks.filter(t => t.id != req.params.id);
+  tasks = tasks.filter(t => t.id !== Number(req.params.id));
   writeDB(tasks);
-  res.json({ success: true });
+  res.status(204).end();
 });
 
-// ========== Serve React build ==========
-const frontendPath = path.join(__dirname, "frontend", "dist");
-app.use(express.static(frontendPath));
+// ---------- ROUTES FRONTEND ----------
+// Sert les fichiers statiques du build React
+app.use(express.static(path.join(__dirname, 'frontend/build')));
 
-// Catch-all pour toutes les autres routes
-app.use((req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+// Catch‑all pour renvoyer le HTML de React (DOIT ÊTRE APRÈS LES ROUTES API)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
 });
 
-// ========== Start server ==========
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
+// ✅ Lancer le serveur
+app.listen(PORT, () => {
+  console.log(`Serveur lancé sur le port ${PORT}`);
+});
