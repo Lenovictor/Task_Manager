@@ -7,12 +7,11 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(express.json());
 app.use(cors());
 
 // ======================
-// Fonctions DB
+// DB utils
 // ======================
 function readDB() {
   try {
@@ -28,11 +27,10 @@ function writeDB(data) {
 }
 
 // ======================
-// Routes API
+// API routes
 // ======================
 app.get("/api/tasks", (req, res) => {
-  const tasks = readDB();
-  res.json(tasks);
+  res.json(readDB());
 });
 
 app.post("/api/tasks", (req, res) => {
@@ -45,11 +43,11 @@ app.post("/api/tasks", (req, res) => {
 
 app.put("/api/tasks/:id", (req, res) => {
   const tasks = readDB();
-  const taskIndex = tasks.findIndex(t => t.id == req.params.id);
-  if (taskIndex === -1) return res.status(404).json({ error: "Task not found" });
-  tasks[taskIndex] = { ...tasks[taskIndex], ...req.body };
+  const idx = tasks.findIndex(t => t.id == req.params.id);
+  if (idx === -1) return res.status(404).json({ error: "Task not found" });
+  tasks[idx] = { ...tasks[idx], ...req.body };
   writeDB(tasks);
-  res.json(tasks[taskIndex]);
+  res.json(tasks[idx]);
 });
 
 app.delete("/api/tasks/:id", (req, res) => {
@@ -65,9 +63,9 @@ app.delete("/api/tasks/:id", (req, res) => {
 const frontendPath = path.join(__dirname, "frontend", "dist");
 app.use(express.static(frontendPath));
 
-// Catch-all pour React
-app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+// Catch-all React route
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // ======================
@@ -76,3 +74,4 @@ app.get("*", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
