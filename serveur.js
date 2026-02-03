@@ -1,4 +1,3 @@
-// serveur.js
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
@@ -10,14 +9,11 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 
-// ======================
-// DB utils
-// ======================
+// ========== DB Utils ==========
 function readDB() {
   try {
     return JSON.parse(fs.readFileSync("db.json", "utf-8"));
-  } catch (err) {
-    console.error("Erreur lecture DB:", err);
+  } catch {
     return [];
   }
 }
@@ -26,12 +22,8 @@ function writeDB(data) {
   fs.writeFileSync("db.json", JSON.stringify(data, null, 2));
 }
 
-// ======================
-// API routes
-// ======================
-app.get("/api/tasks", (req, res) => {
-  res.json(readDB());
-});
+// ========== API Routes ==========
+app.get("/api/tasks", (req, res) => res.json(readDB()));
 
 app.post("/api/tasks", (req, res) => {
   const tasks = readDB();
@@ -57,21 +49,16 @@ app.delete("/api/tasks/:id", (req, res) => {
   res.json({ success: true });
 });
 
-// ======================
-// Serve React Vite build
-// ======================
+// ========== Serve React build ==========
 const frontendPath = path.join(__dirname, "frontend", "dist");
 app.use(express.static(frontendPath));
 
-// Catch-all React route
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+// Catch-all pour toutes les autres routes
+app.use((req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// ======================
-// Start server
-// ======================
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// ========== Start server ==========
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
