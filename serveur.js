@@ -73,19 +73,33 @@ app.delete("/tasks/:id", (req, res) => {
   res.status(204).end();
 });
 
-// ---------- ROUTES FRONTEND ----------
-// Sert les fichiers statiques du build React
-app.use(express.static(path.join(__dirname, 'frontend/build')));
+// ---------- GESTION DU FRONTEND ----------
+// Vérifie si le dossier build existe
+const frontendBuildPath = path.join(__dirname, 'frontend/build');
 
-// Option 1: Utiliser un paramètre de chemin (recommandé)
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
-});
-
-// Option 2: Route racine pour la page principale
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
-});
+if (fs.existsSync(frontendBuildPath)) {
+  // Sert les fichiers statiques du build React
+  app.use(express.static(frontendBuildPath));
+  
+  // Catch-all handler pour React Router
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  });
+} else {
+  // Si pas de frontend, juste l'API
+  app.get("/", (req, res) => {
+    res.json({ 
+      message: "API de gestion de tâches",
+      status: "en ligne",
+      endpoints: {
+        getAllTasks: "GET /tasks",
+        createTask: "POST /tasks",
+        updateTask: "PUT /tasks/:id",
+        deleteTask: "DELETE /tasks/:id"
+      }
+    });
+  });
+}
 
 // ✅ Lancer le serveur
 app.listen(PORT, () => {
