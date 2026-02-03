@@ -1,0 +1,114 @@
+/* src/App.css */
+
+/* Corps de la page */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+/* Conteneur principal */
+.app-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+}
+
+/* Titre */
+h1 {
+  text-align: center;
+  color: #1e90ff;
+  margin-bottom: 20px;
+}
+
+/* Formulaire ajout/modif */
+input[type="text"] {
+  padding: 10px;
+  width: 70%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-right: 10px;
+  outline: none;
+  transition: border 0.2s;
+}
+
+input[type="text"]:focus {
+  border-color: #1e90ff;
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+  background-color: #1e90ff;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background-color: #0f75d8;
+}
+
+/* Tableau */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background-color: #f0f4f8;
+  color: #555;
+}
+
+tr:hover {
+  background-color: #f9faff;
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Boutons actions */
+button.modify {
+  background-color: #ffc107;
+  color: #333;
+}
+
+button.modify:hover {
+  background-color: #e0a800;
+}
+
+button.delete {
+  background-color: #dc3545;
+  margin-left: 10px;
+}
+
+button.delete:hover {
+  background-color: #c82333;
+}
+
+
+.done {
+  text-decoration: line-through;
+  color: #999;
+}
