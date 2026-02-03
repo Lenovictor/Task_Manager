@@ -5,6 +5,15 @@ const app = express();
 const PORT = 3000;
 
 const DB_PATH = "./tasks.json";
+const path = require('path');
+
+// Sert les fichiers statiques du build React
+app.use(express.static(path.join(__dirname, 'frontend/build')));
+
+// Catch‑all pour renvoyer le HTML de React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+});
 
 app.use(cors());
 app.use(express.json());
