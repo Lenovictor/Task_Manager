@@ -3,7 +3,7 @@ const fs = require("fs");
 const cors = require("cors");
 const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000;  // Important pour Render
+const PORT = process.env.PORT || 3000;
 
 const DB_PATH = "./tasks.json";
 
@@ -77,8 +77,13 @@ app.delete("/tasks/:id", (req, res) => {
 // Sert les fichiers statiques du build React
 app.use(express.static(path.join(__dirname, 'frontend/build')));
 
-// Catch‑all pour renvoyer le HTML de React (DOIT ÊTRE APRÈS LES ROUTES API)
-app.get('*', (req, res) => {
+// Option 1: Utiliser un paramètre de chemin (recommandé)
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+});
+
+// Option 2: Route racine pour la page principale
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
 });
 
