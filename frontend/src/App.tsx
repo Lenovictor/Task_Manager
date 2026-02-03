@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API_URL = "http://localhost:3000/tasks";
+const API_URL = "https://task-manager-api-f3wf.onrender.com/";
 
 interface Task {
   id: number;
