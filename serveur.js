@@ -1,77 +1,85 @@
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
+
 const app = express();
-const PORT = 3000;
+const PORT = 5000;
 
-const DB_PATH = "./tasks.json";
-
-app.use(cors());
+// Middleware
 app.use(express.json());
+app.use(cors());
 
-// 🔹 Lecture du fichier JSON
+// Utils DB
 function readDB() {
-  try {
-    if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, "[]");
-    const data = fs.readFileSync(DB_PATH, "utf-8");
-    return data ? JSON.parse(data) : [];
-  } catch (err) {
-    console.error("Erreur lecture DB:", err);
-    return [];
-  }
+  return JSON.parse(fs.readFileSync("db.json", "utf-8"));
 }
 
-// 🔹 Écriture dans le fichier JSON
-function writeDB(tasks) {
-  try {
-    fs.writeFileSync(DB_PATH, JSON.stringify(tasks, null, 2));
-  } catch (err) {
-    console.error("Erreur écriture DB:", err);
-  }
+function writeDB(data) {
+  fs.writeFileSync("db.json", JSON.stringify(data, null, 2));
 }
 
-// ➕ Créer une tâche
-app.post("/tasks", (req, res) => {
-  const tasks = readDB();
-  const newTask = {
-    id: tasks.length ? tasks[tasks.length - 1].id + 1 : 1,
-    title: req.body.title || "Tâche sans titre",
-    done: false,
-  };
-  tasks.push(newTask);
-  writeDB(tasks);
-  res.status(201).json(newTask);
-});
-
-// 📄 Lire toutes les tâches
+// GET toutes les tâches
 app.get("/tasks", (req, res) => {
-  const tasks = readDB();
-  res.json(tasks);
+  const db = readDB();
+  res.json(db.tasks);
 });
 
-// ✏️ Modifier une tâche
-app.put("/tasks/:id", (req, res) => {
-  const tasks = readDB();
-  const task = tasks.find(t => t.id === Number(req.params.id));
-  if (!task) return res.status(404).json({ message: "Tâche introuvable" });
+// GET une tâche par id
+app.get("/tasks/:id", (req, res) => {
+  const db = readDB();
+  const task = db.tasks.find(t => t.id == req.params.id);
 
-  task.title = req.body.title ?? task.title;
-  if (req.body.done !== undefined) task.done = req.body.done;
+  if (!task) {
+    return res.status(404).json({ message: "Task not found" });
+  }
 
-  writeDB(tasks);
   res.json(task);
 });
 
-// ❌ Supprimer une tâche
+// POST créer une tâche
+app.post("/tasks", (req, res) => {
+  const db = readDB();
+  const newTask = {
+    id: Date.now(),
+    title: req.body.title,
+    completed: false
+  };
+
+  db.tasks.push(newTask);
+  writeDB(db);
+  res.status(201).json(newTask);
+});
+
+// PUT modifier une tâche
+app.put("/tasks/:id", (req, res) => {
+  const db = readDB();
+  const index = db.tasks.findIndex(t => t.id == req.params.id);
+
+  if (index === -1) {
+    return res.status(404).json({ message: "Task not found" });
+  }
+
+  db.tasks[index] = { ...db.tasks[index], ...req.body };
+  writeDB(db);
+  res.json(db.tasks[index]);
+});
+
+// DELETE supprimer une tâche
 app.delete("/tasks/:id", (req, res) => {
-  let tasks = readDB();
-  tasks = tasks.filter(t => t.id !== Number(req.params.id));
-  writeDB(tasks);
-  res.status(204).end();
+  const db = readDB();
+  const index = db.tasks.findIndex(t => t.id == req.params.id);
+
+  if (index === -1) {
+    return res.status(404).json({ message: "Task not found" });
+  }
+
+  const deleted = db.tasks.splice(index, 1);
+  writeDB(db);
+  res.json(deleted[0]);
 });
 
-// ✅ Lancer le serveur
+// Lancer serveur
 app.listen(PORT, () => {
-  console.log(`Serveur lancé sur http://localhost:${PORT}`);
+  console.log(`Serveur OK → http://localhost:${PORT}`);
 });
-
+//Explique ce code ligne par ligne je comprends rien et je suis débutant en node js
